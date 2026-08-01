@@ -8,15 +8,13 @@ import { createApp } from "./app";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function startServer() {
+export function buildApp() {
   const app = createApp();
 
-  // Serve static files from dist/public in production
   const staticPath = path.resolve(__dirname, "public");
   if (fs.existsSync(staticPath)) {
     app.use(express.static(staticPath));
 
-    // Handle client-side routing - serve index.html for all non-API routes
     app.get("*", (req, res, next) => {
       if (req.path.startsWith("/api")) {
         next();
@@ -26,8 +24,15 @@ async function startServer() {
     });
   }
 
-  const port = process.env.PORT || 3000;
+  return app;
+}
 
+const app = buildApp();
+
+export default app;
+
+if (!process.env.VERCEL) {
+  const port = process.env.PORT || 3000;
   const server = createServer(app);
   server.listen(port, () => {
     console.log("----------------------------------------------------");
@@ -39,5 +44,3 @@ async function startServer() {
     console.log("----------------------------------------------------");
   });
 }
-
-startServer().catch(console.error);

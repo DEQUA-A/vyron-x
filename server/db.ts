@@ -8,10 +8,17 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.resolve(__dirname, "..", "data");
 if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch {
+    console.warn("Warning: Could not create data directory. SQLite will use an in-memory database.");
+  }
 }
 
-const db = new DatabaseSync(path.join(DATA_DIR, "vyron.db"));
+const dbPath = fs.existsSync(DATA_DIR)
+  ? path.join(DATA_DIR, "vyron.db")
+  : ":memory:";
+const db = new DatabaseSync(dbPath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS reservations (

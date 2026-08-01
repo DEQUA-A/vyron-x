@@ -122,6 +122,9 @@ data/
 # Manus debug logs
 .manus-logs/
 
+# Vercel
+.vercel/
+
 # Project zip / archives
 *.zip
 

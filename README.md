@@ -87,11 +87,12 @@ Express middleware  ─── mounted inside Vite dev server (server/app.ts)
 node:sqlite DatabaseSync  ── data/vyron.db
 ```
 
-In development, the Express app is mounted as Vite middleware, so a single dev server serves both the SPA and the API. In production, `vite build` emits static assets to `dist/public` and esbuild bundles the server to `dist/index.js`, which serves both static files and the API.
+In development, the Express app is mounted as Vite middleware, so a single dev server serves both the SPA and the API. In production on Vercel, the frontend is built as static files and API routes are deployed as serverless functions. For standalone deployment, use `pnpm start` after building.
 
 ## Project Structure
 
 ```
+├── api/                    # Vercel serverless functions
 ├── client/                 # Frontend (Vite root)
 │   ├── public/             # Static assets (images)
 │   └── src/
@@ -101,12 +102,13 @@ In development, the Express app is mounted as Vite middleware, so a single dev s
 │       ├── hooks/          # Shared React hooks
 │       ├── lib/            # Utilities
 │       └── declarations.d.ts
+├── docs/screenshots/       # Project screenshots
 ├── server/
 │   ├── app.ts              # Express app factory (routes, validation)
 │   ├── auth.ts             # Session tokens, HMAC, cookie helpers
 │   ├── db.ts               # SQLite layer (node:sqlite)
-│   └── index.ts            # Production server entry
-├── docs/screenshots/       # Project screenshots
+│   └── index.ts            # Server entry (standalone + serverless)
+├── vercel.json             # Vercel deployment configuration
 ├── vite.config.ts          # Vite config + API middleware wiring
 ├── package.json
 └── tsconfig.json
@@ -144,6 +146,8 @@ All variables are optional. Sensible development defaults are provided, but **yo
 | `ADMIN_PASSWORD` | Admin login password | `vyron2026` |
 | `ADMIN_SECRET` | HMAC secret used to sign session tokens | `vyron-x-dev-secret-change-me` |
 
+Set these in the Vercel dashboard under **Settings → Environment Variables**, or create a `.env` file locally.
+
 Example `.env` file:
 
 ```
@@ -159,8 +163,8 @@ ADMIN_SECRET=a-long-random-secret-at-least-32-characters
 | --- | --- |
 | `pnpm dev` | Start the Vite dev server (frontend + API middleware) |
 | `pnpm dev:server` | Run the Express server in watch mode (`tsx watch`) |
-| `pnpm build` | Build the frontend (`dist/public`) and bundle the server (`dist/index.js`) |
-| `pnpm start` | Run the production server (`node dist/index.js`) |
+| `pnpm build` | Build the frontend (`dist/public`) for Vercel deployment |
+| `pnpm start` | Run the standalone production server (`node dist/index.js`) |
 | `pnpm preview` | Preview the production build |
 | `pnpm check` | Type-check the project (`tsc --noEmit`) |
 | `pnpm format` | Format code with Prettier |
@@ -174,8 +178,21 @@ pnpm build
 
 The build produces:
 
-- `dist/public/` — optimized static frontend assets
-- `dist/index.js` — bundled Express server
+- `dist/public/` — optimized static frontend assets (served by Vercel)
+- `api/` — Vercel serverless functions (deployed automatically)
+
+## Deploying to Vercel
+
+1. Push the repository to GitHub
+2. Import the project at [vercel.com/new](https://vercel.com/new)
+3. Vercel automatically detects the Vite framework and `vercel.json` configuration
+4. Set the following environment variables in the Vercel dashboard:
+   - `ADMIN_USERNAME` — admin login username
+   - `ADMIN_PASSWORD` — admin login password
+   - `ADMIN_SECRET` — a long random string for session signing
+5. Deploy
+
+The frontend is served as static files and API routes are handled as serverless functions. SPA routing is handled by Vercel rewrites that serve `index.html` for non-API paths.
 
 Run it:
 
@@ -302,6 +319,7 @@ The panel is a separate route in the SPA and calls the admin-protected API endpo
 - **SQL injection** is prevented via prepared statements throughout the database layer.
 - **API validation** — all inputs are validated and the reservation email must match a strict pattern.
 - **Production defaults** — the default credentials and secret in this repo are for local development only. **Always** override `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_SECRET` in any deployed environment.
+- **Vercel security** — Vercel provides automatic HTTPS, DDoS protection, and IP rate limiting on its platform. Environment variables are encrypted at rest and injected at runtime.
 
 ## Performance Optimizations
 
