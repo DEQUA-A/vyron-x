@@ -30,13 +30,12 @@ async function startServer() {
 
   const server = createServer(app);
   server.listen(port, () => {
-    const username = process.env.ADMIN_USERNAME || "admin";
-    const password = process.env.ADMIN_PASSWORD || "vyron2026";
     console.log("----------------------------------------------------");
     console.log(`  VYRON X server running on http://localhost:${port}/`);
     console.log(`  Admin panel:  http://localhost:${port}/admin`);
-    console.log(`  Admin login:  ${username} / ${password}`);
-    console.log("  Set ADMIN_USERNAME / ADMIN_PASSWORD env vars to change.");
+    if (process.env.NODE_ENV === "production") {
+      console.log("  Set ADMIN_USERNAME / ADMIN_PASSWORD / ADMIN_SECRET env vars.");
+    }
     console.log("----------------------------------------------------");
   });
 }

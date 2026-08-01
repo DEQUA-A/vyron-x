@@ -9,10 +9,8 @@ build/
 
 # Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
 # IDE and editor files
 .vscode/
@@ -104,6 +102,12 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Windows system files
+desktop.ini
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
